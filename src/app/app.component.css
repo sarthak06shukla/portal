@@ -1,0 +1,17 @@
+.container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo-container {
+    margin-bottom: 30px;
+    text-align: left;
+    padding: 10px 0;
+}
+
+.nse-logo {
+    height: 100px;
+    width: auto;
+    display: block;
+}

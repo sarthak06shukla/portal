@@ -1,0 +1,215 @@
+<div class="logo-container">
+    <img src="assets/images/nse.webp" alt="NSE Logo" class="nse-logo">
+</div>
+<div class="container mt-4">
+    <h2 class="mb-4 text-secondary" style="font-size: 1.5rem;">NSE Data Analysis</h2>
+
+    <!-- Search Form -->
+    <form [formGroup]="searchForm" class="mb-4">
+        <div class="row g-3">
+            <!-- Report Type Selection -->
+            <div class="col-md-4">
+                <div class="report-search">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-file-text"></i>
+                        </span>
+                        <input type="text" class="form-control" placeholder="Search report type..."
+                            formControlName="reportType">
+                    </div>
+                    <div class="report-suggestions" *ngIf="filteredReportTypes.length > 0 && showReportSuggestions">
+                        <div class="suggestion-item" *ngFor="let type of filteredReportTypes"
+                            (click)="selectReportType(type.type)">
+                            <div class="report-type-item">
+                                <span class="report-type-name">{{type.name}}</span>
+                                <small class="report-type-description">{{type.description}}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Selection -->
+            <div class="col-md-4">
+                <div class="custom-dropdown" [class.open]="isCompanyDropdownOpen" clickOutside>
+                    <div class="dropdown-header" (click)="toggleCompanyDropdown($event)">
+                        <span>{{ getSelectedCompaniesText() }}</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="dropdown-menu" [class.show]="isCompanyDropdownOpen">
+                        <div class="dropdown-item select-all">
+                            <label class="checkbox-container">
+                                <input type="checkbox"
+                                    [checked]="companies.length === searchForm.get('selectedCompanies')?.value?.length"
+                                    (click)="toggleAllCompanies($event)">
+                                <span class="checkmark"></span>
+                                <span class="label-text">Select All Companies</span>
+                            </label>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="company-search">
+                            <input type="text" class="form-control form-control-sm" placeholder="Search companies..."
+                                formControlName="companySearch">
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="companies-list">
+                            <div class="dropdown-item" *ngFor="let company of filteredCompanies">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" [checked]="isCompanySelected(company)"
+                                        (click)="toggleCompanySelection(company, $event)">
+                                    <span class="checkmark"></span>
+                                    <span class="label-text">{{company}}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="dropdown-footer">
+                            <button class="btn btn-primary w-100" (click)="applyCompanySelection($event)">
+                                Apply Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Range -->
+            <div class="col-md-3">
+                <div class="input-group">
+                    <input type="date" class="form-control" placeholder="Start Date" formControlName="startDate"
+                        [max]="searchForm.get('endDate')?.value">
+                    <span class="input-group-text">-</span>
+                    <input type="date" class="form-control" placeholder="End Date" formControlName="endDate"
+                        [min]="searchForm.get('startDate')?.value">
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="isDateRangeInvalid()">
+                    Start date cannot be after end date
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="isLoading" class="text-center my-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-responsive mt-4" *ngIf="!isLoading && reportData.length > 0">
+        <div class="table-header-sticky">
+            <div class="table-title">
+                <h4>{{selectedReportType?.name || 'Stock Data'}}</h4>
+            </div>
+            <div class="table-controls">
+                <div class="custom-dropdown column-manager" [class.open]="isColumnDropdownOpen" clickOutside>
+                    <button class="btn btn-outline-secondary btn-sm" (click)="toggleColumnDropdown($event)">
+                        <i class="bi bi-layout-three-columns"></i>
+                        Manage Columns
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu" [class.show]="isColumnDropdownOpen">
+                        <div class="dropdown-item select-all">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="selectAllColumns"
+                                    [checked]="areAllColumnsVisible()" (change)="toggleAllColumns($event)">
+                                <label class="form-check-label" for="selectAllColumns">
+                                    Show All Columns
+                                </label>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" *ngFor="let col of availableColumns; let i = index">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" [id]="'col-' + i"
+                                    [checked]="isColumnVisible(col.key)" (change)="toggleColumn(col.key, $event)">
+                                <label class="form-check-label" [for]="'col-' + i">
+                                    {{col.key}}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="dropdown-footer">
+                            <button class="btn btn-primary w-100" (click)="applyColumnSelection($event)">
+                                Apply Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm ms-2" (click)="toggleFilters()">
+                    <i class="bi bi-funnel"></i>
+                    {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-2" (click)="toggleVisibility()">
+                    <i class="bi" [ngClass]="{'bi-eye': visibility, 'bi-eye-slash': !visibility}"></i>
+                    {{ visibility ? 'Hide Rows' : 'Show Rows' }}
+                </button>
+                <button class="btn btn-outline-primary btn-sm ms-2" (click)="downloadData()"
+                    [disabled]="!reportData.length">
+                    <i class="bi bi-download"></i>
+                    Download Data
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr class="header-row">
+                        <th class="row-select">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="selectAllRows"
+                                    [checked]="areAllRowsSelected()" (change)="toggleAllRows($event)">
+                                <label class="form-check-label" for="selectAllRows">
+                                    <span class="visually-hidden">Select All Rows</span>
+                                </label>
+                            </div>
+                        </th>
+                        <th *ngFor="let col of availableColumns" [class.d-none]="!isColumnVisible(col.key)">
+                            {{col.key}}
+                        </th>
+                    </tr>
+                    <tr class="filter-row" *ngIf="showFilters">
+                        <th class="row-select">
+                            <button class="btn btn-sm" [class.btn-primary]="!isFiltersApplied"
+                                [class.btn-danger]="isFiltersApplied"
+                                (click)="isFiltersApplied ? removeColumnFilters() : applyColumnFilters()">
+                                <i class="bi" [class.bi-funnel-fill]="isFiltersApplied"
+                                    [class.bi-funnel]="!isFiltersApplied"></i>
+                                {{ isFiltersApplied ? 'Remove Filters' : 'Apply Filters' }}
+                            </button>
+                        </th>
+                        <th *ngFor="let col of availableColumns" [class.d-none]="!isColumnVisible(col.key)">
+                            <div class="column-filter">
+                                <input type="text" class="form-control form-control-sm"
+                                    [formControl]="getFilterControl(col.key)"
+                                    [placeholder]="'Filter ' + col.key + '...'" (input)="applyFilters()">
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of reportData; let i = index"
+                        [class.hidden-row]="!visibility && selectedRows.has(item.id)"
+                        [class.selected]="selectedRows.has(item.id)">
+                        <td class="row-select">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" [id]="'row-' + i"
+                                    [checked]="selectedRows.has(item.id)" (change)="toggleRowSelection(item.id)">
+                                <label class="form-check-label" [for]="'row-' + i">
+                                    <span class="visually-hidden">Select Row</span>
+                                </label>
+                            </div>
+                        </td>
+                        <td *ngFor="let col of availableColumns" [class.d-none]="!isColumnVisible(col.key)">
+                            {{getColumnValue(item, col.key)}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- No Data Message -->
+    <div *ngIf="!isLoading && reportData.length === 0" class="text-center my-4">
+        <p class="text-muted">No data available for the selected criteria.</p>
+    </div>
+</div>

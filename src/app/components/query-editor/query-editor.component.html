@@ -1,0 +1,99 @@
+<div class="query-editor-header">
+    <div class="logo-container">
+        <img src="assets/images/nse.webp" alt="NSE Logo" class="nse-logo">
+    </div>
+    <div class="logo-divider"></div>
+</div>
+<div class="query-editor-container">
+    <div class="query-form">
+        <h2>Query Editor</h2>
+
+        <div class="form-group">
+            <label for="query-name">Name of the Query</label>
+            <input type="text" id="query-name" [(ngModel)]="queryName" placeholder="e.g., Stock Prices Query">
+        </div>
+
+        <div class="form-group">
+            <label for="variation-name">Variation Name (Optional)</label>
+            <input type="text" id="variation-name" [(ngModel)]="variationName" placeholder="e.g., Top 10 by volume">
+        </div>
+
+        <div class="form-group">
+            <label for="query-text">Query</label>
+            <textarea id="query-text" [(ngModel)]="queryText" rows="6"
+                placeholder="SELECT * FROM stock_prices"></textarea>
+        </div>
+
+        <button (click)="validateAndSaveQuery()">Save Query</button>
+
+        <div *ngIf="validateMessage" class="query-success">{{ validateMessage }}</div>
+        <div *ngIf="queryError" class="query-error">{{ queryError }}</div>
+    </div>
+
+    <div class="history-section">
+        <h3>Saved Queries</h3>
+        <ul class="history-list">
+            <li *ngIf="queryHistory.length === 0" class="history-item-empty">No queries saved yet.</li>
+            <li *ngFor="let item of queryHistory" class="history-item" (click)="selectQuery(item)">
+                <span class="history-name">
+                    {{ item.name }}<ng-container *ngIf="item.variation_name"> ({{ item.variation_name }})</ng-container>
+                </span>
+                <span class="history-time">{{ item.created_at | date:'yyyy-MM-dd HH:mm:ss' }}</span>
+            </li>
+        </ul>
+        <div *ngIf="queryVersions.length > 0">
+            <h4>Versions for {{ selectedQueryName }}</h4>
+            <ul class="version-list">
+                <li *ngFor="let version of queryVersions; let i = index"
+                    [class.latest-version]="i === queryVersions.length - 1">
+                    <span class="version-label">Version {{ i + 1 }}</span>
+                    <span class="version-time">({{ version.created_at | date:'yyyy-MM-dd HH:mm:ss' }})</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Query History -->
+    <div class="mt-4">
+        <h4>Approved Queries</h4>
+        <ul *ngIf="approvedQueries.length > 0; else noApproved">
+            <li *ngFor="let query of approvedQueries">
+                <div class="query-actions">
+                    <span (click)="selectQuery(query)">
+                        {{ query.name }}<ng-container *ngIf="query.variation_name"> ({{ query.variation_name
+                            }})</ng-container> ({{ query.created_at | date:'short' }})
+                    </span>
+                    <div>
+                        <button class="delete-btn" (click)="deleteQuery(query)">Delete</button>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        <ng-template #noApproved>
+            <p>No approved queries yet.</p>
+        </ng-template>
+    </div>
+
+    <!-- Pending Queries for Approval -->
+    <div *ngIf="pendingQueries.length > 0" class="mt-5">
+        <h4 class="text-warning">Pending Approval</h4>
+        <p>The following queries were submitted by users and are waiting for your review.</p>
+        <ul class="list-group">
+            <li *ngFor="let query of pendingQueries"
+                class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong class="d-block">
+                        {{ query.name }}<ng-container *ngIf="query.variation_name"> ({{ query.variation_name
+                            }})</ng-container>
+                    </strong>
+                    <code class="d-block text-muted">{{ query.query }}</code>
+                    <small>Submitted: {{ query.created_at | date:'short' }}</small>
+                </div>
+                <div>
+                    <button class="btn btn-success btn-sm me-2" (click)="approveQuery(query)">Approve</button>
+                    <button class="btn btn-danger btn-sm" (click)="deleteQuery(query)">Delete</button>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>

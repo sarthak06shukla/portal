@@ -1,0 +1,32 @@
+.reports-header {
+    margin-bottom: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 8px;
+    margin-top: 16px;
+}
+
+.nse-logo {
+    height: 80px;
+    width: auto;
+    max-width: 260px;
+    display: block;
+    object-fit: contain;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-radius: 8px;
+    background: white;
+    padding: 4px 16px;
+}
+
+.logo-divider {
+    height: 1px;
+    background: linear-gradient(to right, #e0e0e0 60%, transparent 100%);
+    margin-bottom: 16px;
+    margin-top: 0;
+}

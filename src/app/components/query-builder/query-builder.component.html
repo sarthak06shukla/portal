@@ -1,0 +1,117 @@
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title text-center mb-4">Generate Custom Report</h4>
+            <form [formGroup]="queryForm" (ngSubmit)="onSubmit()">
+                <!-- 1. Select Report -->
+                <div class="mb-4">
+                    <label for="report" class="form-label fw-bold">1. Select Report</label>
+                    <select id="report" formControlName="report" class="form-select">
+                        <option value="" disabled>Select Report</option>
+                        <option *ngFor="let report of reports" [value]="report.id">{{ report.name }}</option>
+                    </select>
+                </div>
+
+                <!-- 2. Select Columns (by Group) -->
+                <div class="mb-4" *ngIf="selectedColumnGroups.length > 0">
+                    <label class="form-label fw-bold">2. Select Columns (by Section)</label>
+                    <div formArrayName="groups">
+                        <div *ngFor="let group of selectedColumnGroups; let gIdx = index"
+                            class="mb-3 border rounded p-2">
+                            <h6 class="fw-bold">{{ group.group }}</h6>
+                            <div [formArrayName]="gIdx" class="row">
+                                <div *ngFor="let col of group.columns; let cIdx = index" class="form-check col-md-4">
+                                    <input class="form-check-input" type="checkbox"
+                                        [id]="'group' + gIdx + '-col' + cIdx" [formControlName]="cIdx">
+                                    <label class="form-check-label" [for]="'group' + gIdx + '-col' + cIdx">{{ col
+                                        }}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Order By -->
+                <div class="mb-4" *ngIf="selectedColumnGroups.length > 0">
+                    <label class="form-label fw-bold">3. Order By</label>
+                    <div class="row g-2">
+                        <div class="col">
+                            <select formControlName="orderBy" class="form-select">
+                                <option value="" disabled>Select Column</option>
+                                <option *ngFor="let column of allColumnsForOrderBy" [value]="column">{{ column }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <select formControlName="orderDirection" class="form-select">
+                                <option value="ASC">ASC</option>
+                                <option value="DESC">DESC</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Query Operations (optional) -->
+                <div class="mb-4">
+                    <label for="operation" class="form-label">Query Operations <span
+                            class="text-muted">(optional)</span></label>
+                    <select id="operation" formControlName="operation" class="form-select">
+                        <option value="" disabled>Select Operation</option>
+                        <option value="LIMIT 10">Limit to 10 rows</option>
+                        <option value="LIMIT 100">Limit to 100 rows</option>
+                    </select>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg"
+                        [disabled]="queryForm.invalid || isLoading || isWaitingForApproval">
+                        <span *ngIf="isLoading || isWaitingForApproval" class="spinner-border spinner-border-sm"
+                            role="status" aria-hidden="true"></span>
+                        {{ isWaitingForApproval ? 'Waiting for Approval...' : (isLoading ? 'Loading...' : 'Display
+                        Report') }}
+                    </button>
+                </div>
+            </form>
+
+            <!-- Approval Waiting Message -->
+            <div *ngIf="isWaitingForApproval" class="alert alert-info mt-4 text-center">
+                <h5 class="alert-heading">Query Submitted!</h5>
+                <p>Your report request has been sent to a developer for validation. Please wait.</p>
+                <p class="mb-0">This page will automatically redirect you once your report is approved.</p>
+            </div>
+
+            <!-- Results Section -->
+            <div *ngIf="!isWaitingForApproval" class="mt-5">
+                <!-- Loading Indicator -->
+                <div *ngIf="isLoading" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div *ngIf="error" class="alert alert-danger">
+                    <strong>Error:</strong> {{ error }}
+                </div>
+
+                <!-- Results Table -->
+                <div *ngIf="queryResult" class="table-responsive">
+                    <h5 *ngIf="queryResult.length === 0" class="text-center text-muted">No results found.</h5>
+                    <table *ngIf="queryResult.length > 0" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th *ngFor="let col of resultColumns">{{ col }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of queryResult">
+                                <td *ngFor="let col of resultColumns">{{ row[col] }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

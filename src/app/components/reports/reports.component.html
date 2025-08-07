@@ -1,0 +1,184 @@
+<div class="reports-header">
+    <div class="logo-container">
+        <img src="assets/images/nse.webp" alt="NSE Logo" class="nse-logo">
+    </div>
+    <div class="logo-divider"></div>
+</div>
+<div class="reports-container">
+    <!-- Controls Section -->
+    <div class="controls-section">
+        <app-report-search (reportData)="onReportDataLoaded($event)"></app-report-search>
+
+        <div class="column-controls">
+            <button #columnManagerButton (click)="toggleColumnManager($event)" class="btn btn-secondary"
+                [attr.aria-expanded]="showColumnManager">
+                Manage Columns
+                <i class="bi bi-gear"></i>
+            </button>
+            <div #columnManager class="column-manager" [class.show]="showColumnManager" id="columnManager" role="menu"
+                aria-label="Column visibility options">
+                <div class="column-manager-header">
+                    <h6 class="mb-2">Show/Hide Columns</h6>
+                </div>
+                <div class="column-list">
+                    <div *ngFor="let col of availableColumns" class="column-option"
+                        (click)="toggleColumn(col.key, $event)">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" [id]="'col-' + col.key"
+                                [checked]="isColumnVisible(col.key)" (change)="toggleColumn(col.key, $event)">
+                            <label class="form-check-label" [for]="'col-' + col.key">
+                                {{col.key}}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group company-filter">
+                <label>Companies</label>
+                <div class="dropdown" #dropdown>
+                    <button #dropdownButton class="btn btn-primary dropdown-toggle" type="button"
+                        (click)="toggleDropdown($event)" [attr.aria-expanded]="showCompanyDropdown"
+                        [attr.aria-haspopup]="true" [attr.aria-controls]="'companyDropdown'">
+                        {{ getSelectedCompaniesText() }}
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu w-100" [class.show]="showCompanyDropdown" id="companyDropdown"
+                        role="listbox" aria-label="Select companies">
+                        <div class="dropdown-content">
+                            <!-- Select All Option -->
+                            <div class="select-all-option">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="selectAllCompanies"
+                                        [checked]="isAllCompaniesSelected()" (change)="toggleAllCompanies($event)">
+                                    <label class="form-check-label" for="selectAllCompanies">
+                                        Select All
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Search Input -->
+                            <div class="search-box">
+                                <input type="text" class="form-control" placeholder="Search companies..."
+                                    [(ngModel)]="companySearchTerm" (input)="filterCompanies()"
+                                    (click)="$event.stopPropagation()">
+                            </div>
+
+                            <!-- Companies List -->
+                            <div class="companies-list">
+                                <div class="company-item" *ngFor="let company of filteredCompanies; let i = index"
+                                    (click)="$event.stopPropagation()">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" [id]="'company' + i"
+                                            [checked]="isCompanySelected(company)"
+                                            (change)="toggleCompany(company, $event)">
+                                        <label class="form-check-label" [for]="'company' + i">
+                                            {{company}}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label for="searchInput">Search</label>
+                <input id="searchInput" type="text" class="form-control" [(ngModel)]="filters.search"
+                    placeholder="Search reports..." (input)="applyFilters()">
+            </div>
+
+            <div class="date-filters">
+                <div class="filter-group">
+                    <label for="startDate">Start Date</label>
+                    <input id="startDate" type="date" class="form-control" [(ngModel)]="filters.startDate"
+                        (change)="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label for="endDate">End Date</label>
+                    <input id="endDate" type="date" class="form-control" [(ngModel)]="filters.endDate"
+                        (change)="applyFilters()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading and Error States -->
+    <div *ngIf="loading" class="loading-spinner">
+        Loading...
+    </div>
+
+    <div *ngIf="error" class="error-message">
+        {{error}}
+    </div>
+
+    <!-- Reports Table -->
+    <div style="overflow-x: auto; width: 100%;">
+        <div class="table-responsive" *ngIf="!loading && !error">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <ng-container *ngFor="let col of availableColumns">
+                            <th *ngIf="isColumnVisible(col.key)" (click)="sort(col.key)"
+                                class="text-left py-3 px-4 uppercase font-semibold text-sm cursor-pointer">
+                                {{ col.key }}
+                                <span *ngIf="sortField === col.key">
+                                    <span *ngIf="sortDirection === 'asc'">&#9650;</span>
+                                    <span *ngIf="sortDirection === 'desc'">&#9660;</span>
+                                </span>
+                            </th>
+                        </ng-container>
+                    </tr>
+                    <!-- Filter Row -->
+                    <tr class="filter-row">
+                        <ng-container *ngFor="let col of availableColumns">
+                            <th *ngIf="isColumnVisible(col.key)" class="filter-cell">
+                                <div class="filter-container">
+                                    <input [type]="getColumnFilterType(col.key)" class="form-control filter-input"
+                                        [(ngModel)]="columnFilters[col.key].value"
+                                        (input)="handleFilterInput($event, col.key)"
+                                        [placeholder]="'Filter ' + col.key + '...'">
+                                    <button class="clear-filter" *ngIf="columnFilters[col.key].value"
+                                        (click)="clearColumnFilter(col.key)">×</button>
+                                </div>
+                            </th>
+                        </ng-container>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let report of filteredReports; let i = index">
+                        <ng-container *ngFor="let col of availableColumns">
+                            <td *ngIf="isColumnVisible(col.key)">
+                                {{ col.key === 'date' || col.key.includes('date') || col.key.includes('dt') ?
+                                formatDate(report[col.key]) : report[col.key] }}
+                            </td>
+                        </ng-container>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Report Detail Modal -->
+    <div class="modal" *ngIf="selectedReport" (click)="closeReport()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Report Details</h2>
+                <button class="close-btn" (click)="closeReport()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="selectedReport">
+                    <div *ngFor="let key of getReportKeys(selectedReport)">
+                        <strong>{{ key }}:</strong>
+                        {{ key === 'date' || key.includes('date') || key.includes('dt') ?
+                        formatDate(selectedReport[key]) : selectedReport[key] }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -153,7 +153,7 @@ export class QueryBuilderComponent implements OnDestroy {
       .subscribe(approvedQuery => {
         this.stopPolling();
         this.isWaitingForApproval = false;
-        this.router.navigate(['/'], { queryParams: { report: approvedQuery.name } });
+        this.router.navigate(['/portal'], { queryParams: { report: approvedQuery.name } });
       });
   }
 

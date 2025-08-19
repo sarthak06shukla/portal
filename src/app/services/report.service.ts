@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Report } from '../models/report.model';
 
 export interface SearchParams {
@@ -14,7 +15,7 @@ export interface SearchParams {
     providedIn: 'root'
 })
 export class ReportService {
-    private apiUrl = 'http://localhost:8000';
+    private apiUrl = environment.apiBaseUrl;
 
     constructor(private http: HttpClient) { }
 

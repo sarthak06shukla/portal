@@ -11,7 +11,11 @@
 }
 
 .nse-logo {
-    height: 100px;
+    height: 40px;
     width: auto;
+    max-width: 200px;
     display: block;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }

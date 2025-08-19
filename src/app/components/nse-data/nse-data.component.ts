@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { NseService, ReportData, ReportType, Column } from '../../services/nse.service';
+import { DataService, ReportData, ReportType, Column } from '../../services/nse.service';
 import { ClickOutsideDirective } from '../../directives/click-outside.directive';
 import { debounceTime, distinctUntilChanged, filter, switchMap, take } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
@@ -50,7 +50,7 @@ export class NseDataComponent implements OnInit {
 
     private originalReportData: ReportData[] = [];
 
-    constructor(private fb: FormBuilder, private nseService: NseService, private route: ActivatedRoute, private queryService: QueryService) {
+    constructor(private fb: FormBuilder, private dataService: DataService, private route: ActivatedRoute, private queryService: QueryService) {
         this.searchForm = this.fb.group({
             reportType: [''],
             selectedCompanies: [[]],
@@ -203,7 +203,7 @@ export class NseDataComponent implements OnInit {
             searchTerm: formValue.searchTerm || ''
         };
 
-        this.nseService.searchData(searchOptions).subscribe({
+        this.dataService.searchData(searchOptions).subscribe({
             next: (data: ReportData[]) => {
                 this.originalReportData = [...data];
                 this.reportData = [...data];
@@ -323,7 +323,7 @@ export class NseDataComponent implements OnInit {
 
     private loadReportTypes(): Promise<void> {
         return new Promise((resolve) => {
-            this.nseService.getReportTypes().subscribe({
+            this.dataService.getReportTypes().subscribe({
                 next: (types: ReportType[]) => {
                     this.reportTypes = types;
                     this.filteredReportTypes = types;
@@ -338,7 +338,7 @@ export class NseDataComponent implements OnInit {
     }
 
     private loadCompanies(): void {
-        this.nseService.getCompanies().subscribe({
+        this.dataService.getCompanies().subscribe({
             next: (companies) => {
                 this.companies = companies;
                 this.filteredCompanies = [...companies];
@@ -598,7 +598,7 @@ export class NseDataComponent implements OnInit {
         const date = new Date().toISOString().split('T')[0];
         const filename = `${this.selectedReportType.name.toLowerCase().replace(/\s+/g, '-')}-${date}.csv`;
 
-        this.nseService.downloadDataAsCSV(this.reportData, visibleColumns, filename);
+        this.dataService.downloadDataAsCSV(this.reportData, visibleColumns, filename);
     }
 
     applyColumnFilters(): void {

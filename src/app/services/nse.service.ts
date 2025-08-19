@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface BaseData {
     id: number;
@@ -117,8 +118,8 @@ export interface RunQueryResult {
 @Injectable({
     providedIn: 'root'
 })
-export class NseService {
-    private apiUrl = 'http://localhost:8000';  // FastAPI backend URL
+export class DataService {
+    private apiUrl = environment.apiBaseUrl;  // FastAPI backend URL
 
     constructor(private http: HttpClient) { }
 
@@ -152,7 +153,7 @@ export class NseService {
         return this.http.get<ReportData[]>(`${this.apiUrl}/reports/search`, { params });
     }
 
-    downloadDataAsCSV(data: ReportData[], columns: Column[], filename: string = 'nse-data.csv'): void {
+    downloadDataAsCSV(data: ReportData[], columns: Column[], filename: string = 'data-analysis.csv'): void {
         if (!data || data.length === 0) return;
 
         // Create CSV header row from visible columns

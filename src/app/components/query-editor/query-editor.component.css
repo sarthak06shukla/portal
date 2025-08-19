@@ -199,15 +199,15 @@ button:not(:disabled):hover {
 }
 
 .nse-logo {
-    height: 80px;
+    height: 65px;
     width: auto;
-    max-width: 260px;
+    max-width: 220px;
     display: block;
     object-fit: contain;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
     border-radius: 8px;
     background: white;
-    padding: 4px 16px;
+    padding: 4px 12px;
 }
 
 .logo-divider {

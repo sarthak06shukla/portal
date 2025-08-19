@@ -1,7 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NseService, ReportData, ReportType, Column, SearchOptions, GenericReportData } from '../../services/nse.service';
+import { DataService, ReportData, ReportType, Column, SearchOptions, GenericReportData } from '../../services/nse.service';
 import { ReportSearchComponent } from '../report-search/report-search.component';
 
 @Component({
@@ -47,7 +47,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
     // Column filters
     columnFilters: { [key: string]: { value: string, operator: string } } = {};
 
-    constructor(private nseService: NseService) {
+    constructor(private dataService: DataService) {
         this.filteredCompanies = [...this.availableCompanies];
     }
 
@@ -205,7 +205,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
     }
 
     formatDate(date: string): string {
-        return this.nseService.formatDate(date) || date;
+        return this.dataService.formatDate(date) || date;
     }
 
     applyFilters(): void {

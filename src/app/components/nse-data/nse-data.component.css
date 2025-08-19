@@ -8,6 +8,17 @@
     background-color: #f8f9fa;
 }
 
+/* Logo styling specifically for portal page */
+.nse-logo {
+    height: 65px !important;
+    width: auto !important;
+    max-width: 220px !important;
+    display: block !important;
+    object-fit: contain !important;
+    border-radius: 8px !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12) !important;
+}
+
 h1 {
     color: #333;
     font-weight: 500;

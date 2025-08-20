@@ -133,13 +133,20 @@ export class QueryBuilderComponent implements OnDestroy {
     }
     // Generate a temporary name for the user's query
     const tempName = `user_query_${Date.now()}`;
+    console.log('Submitting query:', { name: tempName, query: queryString, status: 'pending' });
     this.queryService.createQuery({ name: tempName, query: queryString, status: 'pending' }).subscribe({
       next: (savedQuery) => {
+        console.log('Query created successfully:', savedQuery);
         this.isWaitingForApproval = true;
         this.startPolling(savedQuery.id);
       },
       error: (err: HttpErrorResponse) => {
-        this.error = `Could not submit query: ${err.error?.detail || 'Unknown error'}`;
+        console.error('Error creating query:', err);
+        console.error('Error details:', err.error);
+        console.error('Error message:', err.message);
+        console.error('Error status:', err.status);
+        console.error('Error statusText:', err.statusText);
+        this.error = `Could not submit query: ${err.error?.detail || err.message || err.statusText || 'Unknown error'}`;
       }
     });
   }

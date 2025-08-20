@@ -32,7 +32,10 @@ export interface RunQueryResult {
 export class QueryService {
   private apiUrl = `${environment.apiBaseUrl}/api`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) { 
+    console.log('QueryService: Environment API URL:', environment.apiBaseUrl);
+    console.log('QueryService: Full API URL:', this.apiUrl);
+  }
 
   getQueries(filters: { name?: string; status?: string } = {}): Observable<DeveloperQuery[]> {
     let params = new HttpParams();
@@ -46,6 +49,8 @@ export class QueryService {
   }
 
   createQuery(query: { name: string, variation_name?: string, query: string, status: string }): Observable<DeveloperQuery> {
+    console.log('QueryService: Creating query with URL:', `${this.apiUrl}/developer-queries`);
+    console.log('QueryService: Query data:', query);
     return this.http.post<DeveloperQuery>(`${this.apiUrl}/developer-queries`, query);
   }
 
